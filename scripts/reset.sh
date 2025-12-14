@@ -58,6 +58,96 @@ ask() {
   fi
 }
 
+# Renders the interactive menu options to the terminal.
+# Uses ANSI colors and a '❯' prefix to highlight the currently selected option.
+# Arguments:
+#   $1: The prompt text for the menu.
+#   $2: The currently selected option number (1 or 2).
+render_menu() {
+  local prompt_text=$1
+  local selected=$2
+
+  echo -e "${GREEN}?${NC} ${BOLD}${prompt_text}${NC}"
+  
+  if [ "$selected" -eq 1 ]; then
+    echo -e "${CYAN}❯ Open with \`code\`${NC}"
+    echo -e "  Skip"
+  else
+    echo -e "  Open with \`code\`"
+    echo -e "${CYAN}❯ Skip${NC}"
+  fi
+  
+  echo -e "${GRAY}navigate ⬆ ⬇ select ⏎${NC}"
+}
+
+# Displays an interactive selection menu using key presses.
+# Arguments:
+#   $1: The prompt text to display.
+#   $2: The variable name to export the selection to (1 or 2).
+ask_choice() {
+  local prompt_text=$1
+  local var_name=$2
+  local selected=1
+  local lines_to_clear=4
+  
+  tput civis
+
+  # Initial render outside the loop
+  render_menu "$prompt_text" "$selected"
+
+  while true; do
+    read -rsn1 key
+    
+    # 1. Update selection based on key press
+    local selection_changed=0
+    if [ "$key" = "" ]; then
+      break
+    elif [ "$key" = $'\x1b' ]; then
+      read -rsn2 key
+      case "$key" in
+        '[A')
+          selected=$((selected - 1))
+          if [ "$selected" -lt 1 ]; then
+            selected=2
+          fi
+          selection_changed=1
+          ;;
+        '[B')
+          selected=$((selected + 1))
+          if [ "$selected" -gt 2 ]; then
+            selected=1
+          fi
+          selection_changed=1
+          ;;
+      esac
+    fi
+
+    # 2. Re-render only if selection changed
+    if [ "$selection_changed" -eq 1 ]; then
+      # Move cursor up 4 lines and clear screen from cursor down (J)
+      printf "\033[${lines_to_clear}A\033[J"
+      render_menu "$prompt_text" "$selected"
+    fi
+  done
+  
+  # Final cleanup and export
+  tput cnorm
+  
+  # Move cursor up and clear the entire interactive menu
+  printf "\033[${lines_to_clear}A\033[J"
+  
+  local choice_text
+  if [ "$selected" -eq 1 ]; then
+      choice_text="Open with \`code\`"
+  else
+      choice_text="Skip"
+  fi
+  echo -e "${GREEN}?${NC} ${BOLD}${prompt_text}${NC} ${GRAY}· ${choice_text}${NC}"
+  echo ""
+  
+  export $var_name="$selected"
+}
+
 # Formats and logs status updates to the console.
 log_action() {
   local action=$1
@@ -155,4 +245,22 @@ if [ "$CURRENT_DIR" != "$PKG_NAME" ]; then
   echo -e "${YELLOW}To rename it to your identifier, run:${NC}"
   echo -e "${CYAN}   cd .. && mv \"$CURRENT_DIR\" \"$PKG_NAME\" && cd \"$PKG_NAME\"${NC}"
   echo ""
+fi
+
+# --- 5. VS Code Opening Prompt ---
+ask_choice "Do you want to open the new folder with Visual Studio Code?" "OPEN_VSCODE"
+
+echo ""
+
+if [ "$OPEN_VSCODE" = "1" ]; then
+  if command -v code &> /dev/null; then
+    echo -e "${WHITE}Opening in VS Code...${NC}"
+    code .
+  else
+    echo -e "${YELLOW}Warning: 'code' command not found in PATH.${NC}"
+    echo -e "${YELLOW}Please open VS Code manually or add 'code' to your PATH.${NC}"
+  fi
+else
+  echo -e "${WHITE}To start editing later, run:${NC}"
+  echo -e "   ${CYAN}code .${NC}"
 fi
