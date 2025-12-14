@@ -42,9 +42,9 @@ ask() {
   local default_val=$3
 
   if [ -n "$default_val" ]; then
-    echo -ne "${GREEN}?${NC} ${BOLD}${prompt_text}${NC} ${GRAY}(${default_val})${NC} "
+    echo -ne "${BLUE}?${NC} ${BOLD}${prompt_text}${NC} ${GRAY}(${default_val})${NC} "
   else
-    echo -ne "${GREEN}?${NC} ${BOLD}${prompt_text}${NC} "
+    echo -ne "${BLUE}?${NC} ${BOLD}${prompt_text}${NC} "
   fi
 
   echo -ne "${CYAN}"
@@ -56,18 +56,28 @@ ask() {
   else
     export $var_name="$input"
   fi
+  
+  # Show check mark after answer
+  local answer_value="${!var_name}"
+  tput cuu1  # Move cursor up one line
+  tput el    # Clear line
+  if [ -n "$default_val" ] && [ -z "$input" ]; then
+    echo -e "${GREEN}✓${NC} ${BOLD}${prompt_text}${NC} ${GRAY}· ${answer_value}${NC}"
+  else
+    echo -e "${GREEN}✓${NC} ${BOLD}${prompt_text}${NC} ${GRAY}· ${answer_value}${NC}"
+  fi
 }
 
 # Renders the interactive menu options to the terminal.
 # Uses ANSI colors and a '❯' prefix to highlight the currently selected option.
 # Arguments:
-#   $1: The prompt text for the menu.
-#   $2: The currently selected option number (1 or 2).
+#   $1: The prompt text for the menu.
+#   $2: The currently selected option number (1 or 2).
 render_menu() {
   local prompt_text=$1
   local selected=$2
 
-  echo -e "${GREEN}?${NC} ${BOLD}${prompt_text}${NC}"
+  echo -e "${BLUE}?${NC} ${BOLD}${prompt_text}${NC}"
   
   if [ "$selected" -eq 1 ]; then
     echo -e "${CYAN}❯ Open with \`code\`${NC}"
@@ -82,8 +92,8 @@ render_menu() {
 
 # Displays an interactive selection menu using key presses.
 # Arguments:
-#   $1: The prompt text to display.
-#   $2: The variable name to export the selection to (1 or 2).
+#   $1: The prompt text to display.
+#   $2: The variable name to export the selection to (1 or 2).
 ask_choice() {
   local prompt_text=$1
   local var_name=$2
@@ -142,7 +152,7 @@ ask_choice() {
   else
       choice_text="Skip"
   fi
-  echo -e "${GREEN}?${NC} ${BOLD}${prompt_text}${NC} ${GRAY}· ${choice_text}${NC}"
+  echo -e "${GREEN}✓${NC} ${BOLD}${prompt_text}${NC} ${GRAY}· ${choice_text}${NC}"
   echo ""
   
   export $var_name="$selected"
