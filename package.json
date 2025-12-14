@@ -33,7 +33,8 @@
     "lint": "eslint src",
     "lint:spelling": "cspell \"**\"",
     "test": "vscode-test",
-    "prepare": "husky"
+    "prepare": "husky",
+    "reset": "./scripts/reset.sh"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.2.0",
