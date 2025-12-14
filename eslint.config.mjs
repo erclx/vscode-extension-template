@@ -1,3 +1,4 @@
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import typescriptEslint from 'typescript-eslint'
 
 export default [
@@ -7,6 +8,7 @@ export default [
   {
     plugins: {
       '@typescript-eslint': typescriptEslint.plugin,
+      'simple-import-sort': simpleImportSort,
     },
 
     languageOptions: {
@@ -23,6 +25,9 @@ export default [
           format: ['camelCase', 'PascalCase'],
         },
       ],
+
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
 
       curly: 'warn',
       eqeqeq: 'warn',
