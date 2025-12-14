@@ -1,3 +1,4 @@
+import eslintConfigPrettier from 'eslint-config-prettier'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import typescriptEslint from 'typescript-eslint'
 
@@ -34,4 +35,5 @@ export default [
       'no-throw-literal': 'warn',
     },
   },
+  eslintConfigPrettier,
 ]
